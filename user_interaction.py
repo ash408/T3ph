@@ -93,7 +93,7 @@ def output_obj_dict(obj_dict):
     if list_dict:
 
         for key in list_dict.keys():
-            output_string += format_list(key, list_dict[key]) + '\n'
+            output_string += format_list(key, list_dict[key]) + '\n\n'
     
     if other_dicts:
 

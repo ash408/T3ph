@@ -9,6 +9,9 @@ from events import Encounter
 
 class Game():
 
+    LOAD_ERROR_MSG = 'ERROR! Load game first!'
+    INVALID_ENCOUNTER_MSG = 'ERROR! Invalid encounter!'
+
     def __init__(self):
         types = self.get_types()
 
@@ -76,11 +79,18 @@ class Game():
         
         kwargs['data_type'] = data_type
 
-        OBJECT = self.obj_types[data_type]
-        obj = OBJECT(uid, **kwargs)
-        obj_dict = obj.to_dict()
+        if data_type in self.obj_types:
+            OBJECT = self.obj_types[data_type]
+            obj = OBJECT(uid, **kwargs)
+            obj_dict = obj.to_dict()
+        else:
+            return False
+        
+        try:
+            self.data.make(obj_dict, data_type)
+        except AttributeError:
+            return Game.LOAD_ERROR_MSG
 
-        self.data.make(obj_dict, data_type)
         obj.data_type = data_type
         self.loaded_objs[uid] = obj
 
@@ -95,15 +105,22 @@ class Game():
         if hasattr(item, 'container'):
             uid = item.container
             old_container = self.load_local_obj(uid)
+        
+        try:
+            status = item.place_item(container, old_container)
+        except AttributeError:
+            return False
 
-        status = item.place_item(container, old_container)
         return status
 
     def save_obj(self, obj):
         obj_dict = obj.to_dict()
         data_type = obj_dict['data_type']
         
-        self.data.save(obj_dict, data_type)
+        try:
+            self.data.save(obj_dict, data_type)
+        except AttributeError:
+            return Game.LOAD_ERROR_MSG
 
     def save_objs(self):
         objs = self.loaded_objs
@@ -111,6 +128,8 @@ class Game():
         for key in objs.keys():
             obj = objs[key]
             self.save_obj(obj)
+
+        self.loaded_objs = {}
 
         return True
 
@@ -156,8 +175,12 @@ class Game():
             for data_type in self.data_types:
                 obj_dicts += self.find(data_type, search_key, search_value)
             return obj_dicts
+        
+        try:
+            results = self.data.find(data_type, {search_key : search_value})
+        except AttributeError:
+            return Game.LOAD_ERROR_MSG
 
-        results = self.data.find(data_type, {search_key : search_value})
         results = list(results)
 
         if results:
@@ -181,7 +204,11 @@ class Game():
                 data_type = obj.data_type
 
                 del objs[test_uid]
-                self.data.remove(uid, data_type)
+
+                try:
+                    self.data.remove(uid, data_type)
+                except AttributeError:
+                    return Game.LOAD_ERROR_MSG
                 
                 return True
 
@@ -210,10 +237,20 @@ class Game():
 
                     setattr(obj, key, new_dict)
 
+                elif type(value) is list and hasattr(obj, key):
+                    obj_list = getattr(obj, key)
+                    new_list = obj_list + value
+
+                    setattr(obj, key, new_list)
+
                 else:
                     setattr(obj, key, value)
 
-            return obj.to_dict()
+            obj_dict = obj.to_dict()
+            obj = self.dict_to_obj(obj_dict)
+            
+            del self.loaded_objs[uid]
+            self.loaded_objs[uid] = obj
         else:
             return False
 
@@ -247,8 +284,11 @@ class Game():
 #                    pass
 #
 #        outcome = encounter_obj.resolve(entities, **kwargs)
-
-        outcome = encounter_obj.resolve(entities)
+        
+        try:
+            outcome = encounter_obj.resolve(entities)
+        except AttributeError:
+            return Game.INVALID_ENCOUNTER_MSG
         
         if entities:
             for entity in entities:

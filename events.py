@@ -225,7 +225,8 @@ class Encounter():
     def __has_entities(self, entities):
         needed_entity_uids = self.get_entities()
         check_entity_uids = set()
-
+        
+        
         for entity in entities:
             check_entity_uids.add(entity.uid)
 
@@ -275,6 +276,7 @@ class Encounter():
             for effect in effects:
                 effect_key = 'effect' + str(num)
                 encounter_dict[effect_key] = effect.__dict__.copy()
+                num += 1
 
         return encounter_dict
 
