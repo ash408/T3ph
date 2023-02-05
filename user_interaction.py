@@ -1,4 +1,6 @@
 
+import readline
+
 SEPERATOR = '='
 SEPERATION_NUM = 4
 
