@@ -11,6 +11,7 @@ class Game():
 
     LOAD_ERROR_MSG = 'ERROR! Load game first!'
     INVALID_ENCOUNTER_MSG = 'ERROR! Invalid encounter!'
+    LOAD_ENCOUNTER_MSG = 'ERROR! Load encounter first!'
 
     def __init__(self):
         types = self.get_types()
@@ -265,7 +266,11 @@ class Game():
 #   def resolve(self, encounter_uid, **kwargs):
     def resolve(self, encounter_uid):
         encounter_obj = self.load_local_obj(encounter_uid)
-        entity_uids = encounter_obj.get_entities()
+
+        try:
+            entity_uids = encounter_obj.get_entities()
+        except AttributeError:
+            return Game.LOAD_ENCOUNTER_MSG
         
         entities = []
         if entity_uids:
