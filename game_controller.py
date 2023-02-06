@@ -231,23 +231,24 @@ class Game():
         obj = self.load_local_obj(uid)
         
         if obj:
+            obj_dict = obj.to_dict()
+
             for key, value in kwargs.items():
-                if type(value) is dict and hasattr(obj, key):
-                    obj_dict = getattr(obj, key)
-                    new_dict = {**obj_dict, **value}
+                if type(value) is dict and key in obj_dict.keys():
+                    dictionary = obj_dict[key]
+                    new_dict = {**dictionary, **value}
 
-                    setattr(obj, key, new_dict)
+                    obj_dict[key] =  new_dict
 
-                elif type(value) is list and hasattr(obj, key):
-                    obj_list = getattr(obj, key)
+                elif type(value) is list and key in obj_dict.keys():
+                    obj_list = obj_dict[key]
                     new_list = obj_list + value
 
-                    setattr(obj, key, new_list)
+                    obj_dict[key] = new_list
 
                 else:
-                    setattr(obj, key, value)
+                    obj_dict[key] = value
 
-            obj_dict = obj.to_dict()
             obj = self.dict_to_obj(obj_dict)
             
             del self.loaded_objs[uid]
