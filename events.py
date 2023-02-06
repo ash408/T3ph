@@ -157,7 +157,7 @@ class Encounter():
 
                 self.effects = effects
 
-            if 'outcome' in key:
+            if 'outcomes' in key:
                 outcome = kwargs.pop(key)
                 outcomes_dict.update(outcome) 
                 self.outcomes = Outcomes(outcomes_dict)
